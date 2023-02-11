@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wassim's jungle</title>
+    <link rel="stylesheet" href="./style/mystyle.css">
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+         const { useState, useEffect, useRef} = React
+         const basil = './assets/basil.jpg'
+         const cactus = './assets/cactus.jpg'
+         const calathea = './assets/calathea.jpg'
+         const lyrata = './assets/lyrata.jpg'
+         const mint = './assets/mint.jpg'
+         const monstera = './assets/monstera.jpg'
+         const olivier = './assets/olivier.jpg'
+         const pothos = './assets/pothos.jpg'
+         const succulent ='./assets/succulent.jpg'
+         const logo = './assets/logo.png'
+         
+    //PlantList
+       const plantList = [
+                        {
+                            name: 'monstera',
+                            category: 'classique',
+                            id: '1ed',
+                            bestSale: true,
+                            light: 2,
+                            water: 3,
+                            cover: monstera,
+                            price: 15
+                        },
+                        {
+                            name: 'ficus lyrata',
+                            category: 'classique',
+                            id: '2ab',
+                            light: 3,
+                            water: 1,
+                            cover: lyrata,
+                            price: 16
+                        },
+
+                        {
+                            name: 'pothos argenté',
+                            category: 'classique',
+                            id: '3sd',
+                            light: 1,
+                            water: 2,
+                            cover: pothos,
+
+                            price: 9
+                        },
+                        {
+                            name: 'calathea',
+                            category: 'classique',
+                            id: '4kk',
+                            light: 2,
+                            water: 3,
+                            cover: calathea,
+
+                            price: 20
+                        },
+                        {
+                            name: 'olivier',
+                            category: 'extérieur',
+                            id: '5pl',
+                            light: 3,
+                            water: 1,
+                            cover: olivier,
+                            price: 25
+                        },
+
+                        {
+                            name: 'cactus',
+                            category: 'plante grasse',
+                            id: '8fp',
+                            light: 2,
+                            water: 1,
+                            cover: cactus,
+                            price: 6
+                        },
+                        {
+                            name: 'basilique',
+                            category: 'extérieur',
+                            id: '7ie',
+                            bestSale: true,
+                            light: 2,
+                            water: 3,
+                            cover: basil,
+                            price: 5
+                        },
+                        {
+                            name: 'succulente',
+                            category: 'plante grasse',
+                            id: '9vn',
+                            light: 2,
+                            water: 1,
+                            cover: succulent,
+                            price: 8
+                        },
+
+                        {
+                            name: 'menthe',
+                            category: 'extérieur',
+                            id: '6uo',
+                            light: 2,
+                            water: 2,
+                            cover: mint,
+                            price: 4
+                        }
+                    ]
+
+       //Categories component
+        function Categories({ setActiveCategory, categories, activeCategory }) {
+            return (
+                <div className='lmj-categories'>
+                    <select
+                        value={activeCategory}
+                        onChange={(e) => setActiveCategory(e.target.value)}
+                        className='lmj-categories-select'
+                    >
+                        <option value=''>---</option>
+                        {categories.map((cat) => (
+                            <option key={cat} value={cat}>
+                                {cat}
+                            </option>
+                        ))}
+                    </select>
+                    <button onClick={() => setActiveCategory('')}>Réinitialiser</button>
+                </div>
+            )
+        } 
+        //ShoppingList component
+        function ShoppingList({ cart, updateCart }) {
+            const [activeCategory, setActiveCategory] = useState('')
+            const categories = plantList.reduce(
+                (acc, elem) =>
+                    acc.includes(elem.category) ? acc : acc.concat(elem.category),
+                []
+            )
+
+            function addToCart(name, price) {
+                const currentPlantAdded = cart.find((plant) => plant.name === name)
+                if (currentPlantAdded) {
+                    const cartFilteredCurrentPlant = cart.filter(
+                        (plant) => plant.name !== name
+                    )
+                    updateCart([
+                        ...cartFilteredCurrentPlant,
+                        { name, price, amount: currentPlantAdded.amount + 1 }
+                    ])
+                } else {
+                    updateCart([...cart, { name, price, amount: 1 }])
+                }
+            }
+
+            return (
+                <div className='lmj-shopping-list'>
+                    <Categories
+                        categories={categories}
+                        setActiveCategory={setActiveCategory}
+                        activeCategory={activeCategory}
+                    />
+
+                    <ul className='lmj-plant-list'>
+                        {plantList.map(({ id, cover, name, water, light, price, category }) =>
+                            !activeCategory || activeCategory === category ? (
+                                <div key={id}>
+                                    <PlantItem
+                                        cover={cover}
+                                        name={name}
+                                        water={water}
+                                        light={light}
+                                        price={price}
+                                    />
+                                    <button onClick={() => addToCart(name, price)}>Ajouter</button>
+                                </div>
+                            ) : null
+                        )}
+                    </ul>
+                </div>
+            )
+        }
+
+        //Cart component
+        function Cart({ cart, updateCart }) {
+            const [isOpen, setIsOpen] = useState(true)
+            const total = cart.reduce(
+                (acc, plantType) => acc + plantType.amount * plantType.price,
+                0
+            )
+            useEffect(() => {
+                document.title = `LMJ: ${total}€ d'achats`
+            }, [total])
+
+            return isOpen ? (
+                <div className='lmj-cart'>
+                    <button
+                        className='lmj-cart-toggle-button'
+                        onClick={() => setIsOpen(false)}
+                    >
+                        Fermer
+                    </button>
+                    {cart.length > 0 ? (
+                        <div>
+                            <h2>Panier</h2>
+                            <ul>
+                                {cart.map(({ name, price, amount }, index) => (
+                                    <div key={`${name}-${index}`}>
+                                        {name} {price}€ x {amount}
+                                    </div>
+                                ))}
+                            </ul>
+                            <h3>Total :{total}€</h3>
+                            <button onClick={() => updateCart([])}>Vider le panier</button>
+                        </div>
+                    ) : (
+                        <div>Votre panier est vide</div>
+                    )}
+                </div>
+            ) : (
+                <div className='lmj-cart-closed'>
+                    <button
+                        className='lmj-cart-toggle-button'
+                        onClick={() => setIsOpen(true)}
+                    >
+                        Ouvrir le Panier
+                    </button>
+                </div>
+            )
+        }
+        
+        //CareScale component
+        // Ici, il s'agit d'une manière de faire.
+        //Vous auriez aussi pu utiliser une fonction qui retourne l'élément souhaité, ou bien faire directement des conditions
+        const quantityLabel = {
+            1: 'peu',
+            2: 'modérément',
+            3: 'beaucoup'
+        }
+        const Sun = './assets/sun.svg'
+        const Water = './assets/water.svg'
+
+        function CareScale({ scaleValue, careType }) {
+            const range = [1, 2, 3]
+            const scaleType =
+                careType === 'light' ? (
+                    <img src={Sun} alt='sun-icon' />
+                ) : (
+                    <img src={Water} alt='water-icon' />
+                )
+
+            return (
+                <div
+                    onClick={() =>
+                        alert(
+                            `Cette plante requiert ${quantityLabel[scaleValue]} ${
+                                careType === 'light' ? 'de lumière' : "d'arrosage"
+                            }`
+                        )
+                    }
+                >
+                    {range.map((rangeElem) =>
+                        scaleValue >= rangeElem ? (
+                            <span key={rangeElem.toString()}>{scaleType}</span>
+                        ) : null
+                    )}
+                </div>
+            )
+        }
+
+        //PlantItem component
+        function handleClick(plantName) {
+            alert(`Vous voulez acheter 1 ${plantName}? Très bon choix 🌱✨`)
+        }
+
+        function PlantItem({ cover, name, water, light, price }) {
+            return (
+                <li className='lmj-plant-item' onClick={() => handleClick}>
+                    <span className='lmj-plant-item-price'>{price}€</span>
+                    <img className='lmj-plant-item-cover' src={cover} alt={`${name} cover`} />
+                    {name}
+                    <div>
+                        <CareScale careType='water' scaleValue={water} />
+                        <CareScale careType='light' scaleValue={light} />
+                    </div>
+                </li>
+            )
+        }
+
+        //Banner component
+        function Banner({ children }) {
+            return <div className='lmj-banner'>{children}</div>
+        }
+
+        //Footer component
+        function Footer() {
+            const [inputValue, setInputValue] = useState('')
+
+            function handleInput(e) {
+                setInputValue(e.target.value)
+            }
+
+            function handleBlur() {
+                if (!inputValue.includes('@')) {
+                    alert("Attention, il n'y a pas d'@, ceci n'est pas une adresse valide 😥")
+                }
+            }
+
+            return (
+                <footer className='lmj-footer'>
+                    <div className='lmj-footer-elem'>
+                        Pour les passionné·e·s de plantes 🌿🌱🌵
+                    </div>
+                    <div className='lmj-footer-elem'>Laissez-nous votre mail :</div>
+                    <input
+                        placeholder='Entrez votre mail'
+                        onChange={handleInput}
+                        value={inputValue}
+                        onBlur={handleBlur}
+                    />
+                </footer>
+            )
+        }
+
+        //App component
+        function App () {
+            const savedCart = localStorage.getItem('cart')
+            const [cart, updateCart] = useState(savedCart ? JSON.parse(savedCart) : [])
+            useEffect(() => {
+                localStorage.setItem('cart', JSON.stringify(cart))
+            }, [cart])
+
+            return (
+                <div>
+                    <Banner>
+                        <img src={logo} alt='logo-la-maison-jungle' className='lmj-logo' />
+                        <h1 className='lmj-title'>Wassim's jungle</h1>
+                    </Banner>
+                    <div className='lmj-layout-inner'>
+                        <Cart cart={cart} updateCart={updateCart} />
+                        <ShoppingList cart={cart} updateCart={updateCart} />
+                    </div>
+                    <Footer />
+                </div>
+            )
+        }
+
+        ReactDOM.render(<App/>,document.getElementById("root"))
+    </script>
+</body>
+</html>
